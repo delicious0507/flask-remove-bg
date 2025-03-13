@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圖片去背 + 轉檔工具</title>
+</head>
+<body>
+    <h1>圖片去背 + 轉檔（支援多張 + 即時預覽）</h1>
+
+    <form action="/" method="POST" enctype="multipart/form-data">
+        <input type="file" name="files" id="fileInput" multiple required accept="image/*">  <!-- 支援多檔案上傳 -->
+        
+        <div id="preview"></div> <!-- 預覽區塊 -->
+
+        <label>選擇輸出格式：</label>
+        <select name="format">
+            <option value="png">PNG</option>
+            <option value="jpg">JPG</option>
+            <option value="webp">WEBP</option>
+        </select>
+
+        <label>選擇背景顏色：</label>
+        <select name="bg_color" id="bg_color">
+            <option value="transparent">透明</option>
+            <option value="white">白色</option>
+            <option value="black">黑色</option>
+        </select>
+        
+        <label for="custom_color">自訂顏色：</label>
+        <input type="color" id="custom_color" name="custom_color">
+
+        <button type="submit">上傳並處理</button>
+    </form>
+
+    <script>
+        document.getElementById("fileInput").addEventListener("change", function(event) {
+            const previewDiv = document.getElementById("preview");
+            previewDiv.innerHTML = ""; // 清空先前預覽
+
+            const files = event.target.files;
+            for (const file of files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    img.width = 200;
+                    img.style.margin = "10px";
+                    previewDiv.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+
+    {% if filenames %}
+        <h2>處理後的圖片：</h2>
+        <ul>
+            {% for filename in filenames %}
+                <li>
+                    <img src="{{ url_for('static', filename='processed/' + filename) }}" width="200">
+                    <br>
+                    <a href="{{ url_for('download_file', filename=filename) }}" download>下載圖片</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        {% if zip_filename %}
+            <h2>批量下載</h2>
+            <a href="{{ url_for('download_file', filename=zip_filename) }}" download>📦 下載全部圖片（ZIP）</a>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
